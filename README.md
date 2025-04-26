@@ -11,7 +11,8 @@ PostgreSQL + React
 
 Running backend
 
-in backend folder run python manage.py runserver
+in backend folder run 
+".\venv\Scripts\activate" this will activate the virtual environment now proceed to run "python manage.py runserver"
 This will start the server at http://127.0.0.1:8000/
 
-in frontend folder run npm start
+in frontend folder run "npm start"

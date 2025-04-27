@@ -11,6 +11,8 @@ import DonateFoodPage from "./pages/DonateFoodPage";
 import TrackDonationsPage from "./pages/TrackDonationsPage";
 import AboutPage from "./pages/About";
 import OrganizationPage from "./pages/OrganizationsPage";
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
 function App() {
   return (
     <Router>

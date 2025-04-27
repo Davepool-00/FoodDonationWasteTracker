@@ -1,38 +1,60 @@
 import React, { useState } from "react";
-import axios from "axios";  // Import axios
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
-  const [userType, setUserType] = useState("donor");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    userType: "donor",
+  });
+  const [error, setError] = useState(""); // To store error messages
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const handleUserTypeChange = (e) => {
-    setUserType(e.target.value);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  const handleFormSubmit = async (e) => {
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  const handleUserTypeChange = (e) => {
+    setFormData({ ...formData, userType: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Data to send to backend
-    const userData = {
-      username: username,
-      email: email,
-      password: password,
-      user_type: userType,  // Or user_type if that's your model field
-    };
+    // Check if passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match!");
+      return;
+    }
 
     try {
-      // Make API request to register the user
-      const response = await axios.post("http://localhost:8000/api/register/", userData);
-      if (response.status === 201) {
-        // Handle success (e.g., redirect to login page or show success message)
-        alert("Registration successful!");
-      }
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/users/signup/",
+        {
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        }
+      );
+      console.log(response.data);
+      alert("Registered successfully!");
+      navigate("/login");
     } catch (error) {
-      console.error("There was an error with the registration:", error);
-      // Handle error (show error message to user)
-      alert("Registration failed. Please try again.");
+      console.error(error.response.data);
+      alert("Registration failed.");
     }
   };
 
@@ -41,7 +63,7 @@ const Register = () => {
       <h2 className="text-center mb-4">Register</h2>
       <div className="row justify-content-center">
         <div className="col-md-6">
-          <form onSubmit={handleFormSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="mb-3">
               <label htmlFor="username" className="form-label">
                 Username
@@ -50,12 +72,12 @@ const Register = () => {
                 type="text"
                 className="form-control"
                 id="username"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter Username"
+                value={formData.username}
+                onChange={handleChange}
+                required
               />
             </div>
-
             <div className="mb-3">
               <label htmlFor="email" className="form-label">
                 Email address
@@ -64,26 +86,66 @@ const Register = () => {
                 type="email"
                 className="form-control"
                 id="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
               />
             </div>
-
             <div className="mb-3">
               <label htmlFor="password" className="form-label">
                 Password
               </label>
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="input-group">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="form-control"
+                  id="password"
+                  placeholder="Enter Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <span
+                  className="input-group-text"
+                  style={{ cursor: "pointer" }}
+                  onClick={togglePasswordVisibility}
+                >
+                  <i
+                    className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"}`}
+                  ></i>
+                </span>
+              </div>
             </div>
-
+            <div className="mb-3">
+              <label htmlFor="confirmPassword" className="form-label">
+                Confirm Password
+              </label>
+              <div className="input-group">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  className="form-control"
+                  id="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                />
+                <span
+                  className="input-group-text"
+                  style={{ cursor: "pointer" }}
+                  onClick={toggleConfirmPasswordVisibility}
+                >
+                  <i
+                    className={`bi ${
+                      showConfirmPassword ? "bi-eye" : "bi-eye-slash"
+                    }`}
+                  ></i>
+                </span>
+              </div>
+            </div>
+            {error && <p className="text-danger">{error}</p>}{" "}
+            {/* Display error */}
             <div className="mb-3">
               <label className="form-label">User Type</label>
               <div className="form-check">
@@ -93,7 +155,7 @@ const Register = () => {
                   name="userType"
                   id="donor"
                   value="donor"
-                  checked={userType === "donor"}
+                  checked={formData.userType === "donor"}
                   onChange={handleUserTypeChange}
                 />
                 <label className="form-check-label" htmlFor="donor">
@@ -107,7 +169,7 @@ const Register = () => {
                   name="userType"
                   id="organization"
                   value="organization"
-                  checked={userType === "organization"}
+                  checked={formData.userType === "organization"}
                   onChange={handleUserTypeChange}
                 />
                 <label className="form-check-label" htmlFor="organization">
@@ -115,7 +177,6 @@ const Register = () => {
                 </label>
               </div>
             </div>
-
             <button type="submit" className="btn btn-primary w-100">
               Register
             </button>

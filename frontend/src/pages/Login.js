@@ -1,50 +1,94 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+const Login = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+  const [error, setError] = useState(""); // To store error message
+  const [showPassword, setShowPassword] = useState(false); // To toggle password visibility
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log({ email, password });
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/users/login/", {
+        username: formData.username,
+        password: formData.password,
+      });
+
+      const { access, refresh } = response.data;
+      
+      // Save the tokens in local storage for further use
+      localStorage.setItem("access_token", access);
+      localStorage.setItem("refresh_token", refresh);
+
+      console.log("Login successful!", response.data);
+      alert("Logged in successfully!");
+      navigate("/dashboard"); // Redirect to the dashboard (or another page after login)
+    } catch (error) {
+      console.error(error.response.data);
+      setError("Invalid credentials! Please try again.");
+    }
   };
 
   return (
-    <div className="container py-5">
+    <div className="container mt-5">
+      <h2 className="text-center mb-4">Login</h2>
       <div className="row justify-content-center">
         <div className="col-md-6">
-          <h2 className="text-center mb-4">Login</h2>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label htmlFor="email" className="form-label">Email Address</label>
+              <label htmlFor="username" className="form-label">Username</label>
               <input
-                type="email"
+                type="text"
                 className="form-control"
-                id="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="username"
+                placeholder="Enter Username"
+                value={formData.username}
+                onChange={handleChange}
                 required
               />
             </div>
+
             <div className="mb-3">
               <label htmlFor="password" className="form-label">Password</label>
-              <input
-                type="password"
-                className="form-control"
-                id="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="input-group">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter Password"
+                  className="form-control"
+                  id="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+                <span
+                  className="input-group-text"
+                  style={{ cursor: "pointer" }}
+                  onClick={togglePasswordVisibility}
+                >
+                  <i
+                    className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"}`}
+                  ></i>
+                </span>
+              </div>
             </div>
-            <div className="d-flex justify-content-between">
-              <button type="submit" className="btn btn-primary">Login</button>
-              <Link to="/register" className="btn btn-link">Don't have an account? Register</Link>
-            </div>
+
+            {error && <p className="text-danger">{error}</p>} {/* Show error message */}
+
+            <button type="submit" className="btn btn-primary w-100">Login</button>
           </form>
         </div>
       </div>
@@ -52,4 +96,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default Login;

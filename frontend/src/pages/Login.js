@@ -23,13 +23,13 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/users/login/", {
+      const response = await axios.post("http://127.0.0.1:8000/api/token/", {
         username: formData.username,
         password: formData.password,
       });
 
       const { access, refresh } = response.data;
-      
+
       // Save the tokens in local storage for further use
       localStorage.setItem("access_token", access);
       localStorage.setItem("refresh_token", refresh);
@@ -50,7 +50,9 @@ const Login = () => {
         <div className="col-md-6">
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <label htmlFor="username" className="form-label">Username</label>
+              <label htmlFor="username" className="form-label">
+                Username
+              </label>
               <input
                 type="text"
                 className="form-control"
@@ -61,9 +63,10 @@ const Login = () => {
                 required
               />
             </div>
-
             <div className="mb-3">
-              <label htmlFor="password" className="form-label">Password</label>
+              <label htmlFor="password" className="form-label">
+                Password
+              </label>
               <div className="input-group">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -85,10 +88,11 @@ const Login = () => {
                 </span>
               </div>
             </div>
-
-            {error && <p className="text-danger">{error}</p>} {/* Show error message */}
-
-            <button type="submit" className="btn btn-primary w-100">Login</button>
+            {error && <p className="text-danger">{error}</p>}{" "}
+            {/* Show error message */}
+            <button type="submit" className="btn btn-primary w-100">
+              Login
+            </button>
           </form>
         </div>
       </div>

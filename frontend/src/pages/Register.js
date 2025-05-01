@@ -41,14 +41,14 @@ const Register = () => {
     }
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/users/signup/",
-        {
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+      const response = await axios.post("http://127.0.0.1:8000/api/signup/", {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        confirm_password: formData.confirmPassword,
+        user_type: formData.userType,
+      });
+
       console.log(response.data);
       alert("Registered successfully!");
       navigate("/login");

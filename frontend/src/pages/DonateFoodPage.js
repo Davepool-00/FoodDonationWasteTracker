@@ -4,12 +4,14 @@ import axios from "axios";
 const DonateFoodPage = () => {
   const [foodType, setFoodType] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [expirationDate, setExpirationDate] = useState(""); // New field for expiration date
+  const [pickupLocation, setPickupLocation] = useState(""); // New field for pickup location
   const [organization, setOrganization] = useState("");
-  const [organizations, setOrganizations] = useState([]); // To store organizations
-  const [loading, setLoading] = useState(true); // Loading state for fetching organizations
+  const [organizations, setOrganizations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    // Fetch organizations from backend
     const fetchOrganizations = async () => {
       const accessToken = localStorage.getItem("access_token");
       if (!accessToken) {
@@ -26,12 +28,12 @@ const DonateFoodPage = () => {
             },
           }
         );
-        setOrganizations(response.data); // Store organizations in state
-        setLoading(false); // Set loading to false once organizations are fetched
+        setOrganizations(response.data);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching organizations:", error);
-        alert("Failed to fetch organizations");
-        setLoading(false); // Set loading to false even if fetching fails
+        setError("Failed to fetch organizations.");
+        setLoading(false);
       }
     };
 
@@ -41,6 +43,19 @@ const DonateFoodPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (
+      !foodType ||
+      !quantity ||
+      !expirationDate ||
+      !pickupLocation ||
+      !organization
+    ) {
+      setError("All fields are required!");
+      return;
+    }
+
+    setError("");
+
     const accessToken = localStorage.getItem("access_token");
     if (!accessToken) {
       alert("Login required");
@@ -48,9 +63,11 @@ const DonateFoodPage = () => {
     }
 
     const donationData = {
-      name: foodType, // Maps to `name` field in FoodDonation model
+      food_name: foodType, // Map to the `food_name` field in FoodDonation model
       quantity,
-      organization,
+      expiration_date: expirationDate, // Add expiration date here
+      pickup_location: pickupLocation, // Add pickup location here
+      organization, // Send selected organization
     };
 
     try {
@@ -64,13 +81,15 @@ const DonateFoodPage = () => {
         }
       );
       console.log("Donation successful", response.data);
-      alert("Donation submitted!");
+      alert("Donation submitted successfully!");
       setFoodType("");
       setQuantity("");
-      setOrganization("");
+      setExpirationDate("");
+      setPickupLocation("");
+      setOrganization(""); // Clear form fields
     } catch (error) {
       console.error("Error making donation:", error.response?.data || error);
-      alert("Failed to donate. Check console.");
+      setError("Failed to make the donation. Please try again.");
     }
   };
 
@@ -79,6 +98,8 @@ const DonateFoodPage = () => {
       <h2 className="text-center mb-4">Donate Food</h2>
       {loading ? (
         <div className="text-center">Loading organizations...</div>
+      ) : error ? (
+        <div className="text-center text-danger">{error}</div>
       ) : (
         <form onSubmit={handleSubmit}>
           <div className="row mb-3">
@@ -99,12 +120,44 @@ const DonateFoodPage = () => {
               <div className="form-group">
                 <label htmlFor="quantity">Quantity</label>
                 <input
-                  type="text"
+                  type="number"
                   className="form-control"
                   id="quantity"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="Enter quantity"
+                  min="1"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="row mb-3">
+            <div className="col-12 col-md-6">
+              <div className="form-group">
+                <label htmlFor="expirationDate">Expiration Date</label>
+                <input
+                  type="date"
+                  className="form-control"
+                  id="expirationDate"
+                  value={expirationDate}
+                  onChange={(e) => setExpirationDate(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <div className="col-12 col-md-6">
+              <div className="form-group">
+                <label htmlFor="pickupLocation">Pickup Location</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="pickupLocation"
+                  value={pickupLocation}
+                  onChange={(e) => setPickupLocation(e.target.value)}
+                  placeholder="Enter pickup location"
+                  required
                 />
               </div>
             </div>

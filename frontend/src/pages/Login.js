@@ -23,6 +23,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
+      // Step 1: Log in to get the JWT token
       const response = await axios.post("http://127.0.0.1:8000/api/token/", {
         username: formData.username,
         password: formData.password,
@@ -30,16 +31,53 @@ const Login = () => {
 
       const { access, refresh } = response.data;
 
-      // Save the tokens in local storage for further use
+      // Save the tokens in local storage
       localStorage.setItem("access_token", access);
       localStorage.setItem("refresh_token", refresh);
 
+      // Step 2: Fetch user info after login
+      const userResponse = await axios.get("http://127.0.0.1:8000/api/user/", {
+        headers: {
+          Authorization: `Bearer ${access}`,
+        },
+      });
+
+      const { user_type } = userResponse.data; // Get user type (role)
+
+      // Step 3: Redirect based on user role
+      if (user_type === "donor") {
+        navigate("/donor-dashboard");
+      } else if (user_type === "organization") {
+        navigate("/organization-dashboard");
+      } else if (user_type === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        setError("Invalid role!"); // Handle invalid roles
+      }
+
       console.log("Login successful!", response.data);
       alert("Logged in successfully!");
-      navigate("/dashboard"); // Redirect to the dashboard (or another page after login)
     } catch (error) {
-      console.error(error.response.data);
-      setError("Invalid credentials! Please try again.");
+      console.error(
+        "Login failed:",
+        error.response ? error.response.data : error
+      );
+
+      if (error.response) {
+        if (error.response.status === 401) {
+          setError(
+            "Invalid credentials. Please check your username and password."
+          );
+        } else if (error.response.status === 403) {
+          setError("You are not authorized to log in.");
+        } else {
+          setError("Something went wrong. Please try again later.");
+        }
+      } else {
+        setError(
+          "No response from server. Please check your internet connection."
+        );
+      }
     }
   };
 
@@ -88,8 +126,7 @@ const Login = () => {
                 </span>
               </div>
             </div>
-            {error && <p className="text-danger">{error}</p>}{" "}
-            {/* Show error message */}
+            {error && <p className="text-danger">{error}</p>}
             <button type="submit" className="btn btn-primary w-100">
               Login
             </button>

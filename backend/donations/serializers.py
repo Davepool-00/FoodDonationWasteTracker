@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Donation
+from .models import FoodDonation
 
-class DonationSerializer(serializers.ModelSerializer):
+class FoodDonationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Donation
+        model = FoodDonation
         fields = '__all__'
+        read_only_fields = ['donor']  

@@ -25,5 +25,6 @@ urlpatterns = [
     path('api/', include('users.urls')),  # Include users app routes (signup, login, food donations)
     path('api/token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('organizations/', views.OrganizationListView.as_view(), name='organization-list'),
+    path('food-donations/', include('donations.urls')),
 ]
 

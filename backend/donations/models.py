@@ -1,5 +1,5 @@
 from django.db import models
-from accounts.models import CustomUser
+from users.models import CustomUser, Organization  # Import both CustomUser and Organization models
 
 class FoodDonation(models.Model):
     donor = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -7,6 +7,7 @@ class FoodDonation(models.Model):
     quantity = models.PositiveIntegerField()
     expiration_date = models.DateField()
     pickup_location = models.CharField(max_length=255)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE)  # Add foreign key to Organization
     created_at = models.DateTimeField(auto_now_add=True)
     is_claimed = models.BooleanField(default=False)
 

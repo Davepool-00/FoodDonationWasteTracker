@@ -83,18 +83,18 @@ class OrganizationListView(APIView):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_info(request):
-    user = request.user.customuser  # using custom user model
+    user = request.user  # This is your CustomUser model
     return Response({
         "username": user.username,
         "email": user.email,
-        "user_type": user.user_type,
+        "user_type": user.user_type,  # Directly access user_type
     })
 
-
-
+# --- User Detail (Info) View ---
 class UserDetailView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        serializer = CustomUserSerializer(request.user.customuser)
+        # Corrected this line to directly access the CustomUser instance
+        serializer = CustomUserSerializer(request.user)
         return Response(serializer.data)

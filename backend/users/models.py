@@ -23,3 +23,12 @@ class FoodDonation(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.quantity} units"
+
+class Organization(models.Model):
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)  # Link to CustomUser
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    location = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name

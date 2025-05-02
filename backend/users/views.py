@@ -1,26 +1,28 @@
-# users/views.py
-
-from rest_framework import viewsets, filters, status, permissions
+from rest_framework import viewsets, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
-from .models import FoodDonation, CustomUser
-from .serializers import FoodDonationSerializer, CustomUserSerializer, LoginSerializer
+from .models import FoodDonation, CustomUser, Organization
+from .serializers import (
+    FoodDonationSerializer,
+    CustomUserSerializer,
+    LoginSerializer,
+    OrganizationSerializer
+)
 from .permissions import IsAdminOrReadOnly, IsOrganizationOrAdmin, IsDonorOrAdmin
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 # --- FoodDonation CRUD API ---
-
-
 class FoodDonationViewSet(viewsets.ModelViewSet):
     queryset = FoodDonation.objects.all()
     serializer_class = FoodDonationSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Default permission
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_permissions(self):
         if self.action == 'create':
-            # Ensure the user is authenticated and is either a donor or organization
             if self.request.user.is_authenticated:
                 if self.request.user.customuser.user_type == 'organization':
                     return [permissions.IsAuthenticated(), IsOrganizationOrAdmin()]
@@ -28,13 +30,10 @@ class FoodDonationViewSet(viewsets.ModelViewSet):
                     return [permissions.IsAuthenticated(), IsDonorOrAdmin()]
             else:
                 raise PermissionDenied("You must be logged in to create a donation.")
-        
         return super().get_permissions()
 
     def perform_create(self, serializer):
         user = self.request.user
-        
-        # Ensure the user is authenticated before trying to access customuser
         if user.is_authenticated:
             serializer.save(user=user, is_organization=user.customuser.user_type == 'organization')
         else:
@@ -50,9 +49,9 @@ class SignUpView(APIView):
             user = serializer.save()
             refresh = RefreshToken.for_user(user)
             return Response({
-                'message': "User created successfully!",
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
+                "message": "User created successfully!",
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -70,3 +69,32 @@ class LoginView(APIView):
                 'access': str(refresh.access_token),
             }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# --- List Organizations ---
+class OrganizationListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        orgs = Organization.objects.all()
+        serializer = OrganizationSerializer(orgs, many=True)
+        return Response(serializer.data)
+
+# --- Get Current User Info ---
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_info(request):
+    user = request.user.customuser  # using custom user model
+    return Response({
+        "username": user.username,
+        "email": user.email,
+        "user_type": user.user_type,
+    })
+
+
+
+class UserDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = CustomUserSerializer(request.user.customuser)
+        return Response(serializer.data)

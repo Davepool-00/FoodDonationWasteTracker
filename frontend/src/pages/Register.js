@@ -10,13 +10,20 @@ const Register = () => {
     password: "",
     confirmPassword: "",
     userType: "donor",
+    location: "",
+    description: "",
   });
-  const [error, setError] = useState(""); // To store error messages
+
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+    const { id, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: value, // Ensure the value is correctly set as a string
+    }));
   };
 
   const togglePasswordVisibility = () => {
@@ -34,27 +41,41 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Ensure confirmPassword is a string
+    const confirmPassword = String(formData.confirmPassword);
+
     // Check if passwords match
-    if (formData.password !== formData.confirmPassword) {
+    if (formData.password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
     }
 
-    try {
-      const response = await axios.post("http://127.0.0.1:8000/api/signup/", {
-        username: formData.username,
-        email: formData.email,
-        password: formData.password,
-        confirm_password: formData.confirmPassword,
-        user_type: formData.userType,
-      });
+    const userData = {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+      user_type: formData.userType,
+      name: formData.username,
+      confirm_password: confirmPassword, // Ensure it's sent as a string
+    };
+    console.log("Sending this data to the backend:", userData);
 
+    if (formData.userType === "organization") {
+      userData.location = formData.location;
+      userData.description = formData.description;
+    }
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/signup/",
+        userData
+      );
       console.log(response.data);
       alert("Registered successfully!");
       navigate("/login");
     } catch (error) {
       console.error(error.response.data);
-      alert("Registration failed.");
+      setError(error.response.data.detail || "Registration failed.");
     }
   };
 
@@ -78,6 +99,7 @@ const Register = () => {
                 required
               />
             </div>
+
             <div className="mb-3">
               <label htmlFor="email" className="form-label">
                 Email address
@@ -92,6 +114,7 @@ const Register = () => {
                 required
               />
             </div>
+
             <div className="mb-3">
               <label htmlFor="password" className="form-label">
                 Password
@@ -108,8 +131,8 @@ const Register = () => {
                 />
                 <span
                   className="input-group-text"
-                  style={{ cursor: "pointer" }}
                   onClick={togglePasswordVisibility}
+                  style={{ cursor: "pointer" }}
                 >
                   <i
                     className={`bi ${showPassword ? "bi-eye" : "bi-eye-slash"}`}
@@ -117,6 +140,7 @@ const Register = () => {
                 </span>
               </div>
             </div>
+
             <div className="mb-3">
               <label htmlFor="confirmPassword" className="form-label">
                 Confirm Password
@@ -127,14 +151,14 @@ const Register = () => {
                   className="form-control"
                   id="confirmPassword"
                   placeholder="Confirm Password"
-                  value={formData.confirmPassword}
+                  value={formData.confirmPassword || ""}
                   onChange={handleChange}
                   required
                 />
                 <span
                   className="input-group-text"
-                  style={{ cursor: "pointer" }}
                   onClick={toggleConfirmPasswordVisibility}
+                  style={{ cursor: "pointer" }}
                 >
                   <i
                     className={`bi ${
@@ -144,8 +168,9 @@ const Register = () => {
                 </span>
               </div>
             </div>
-            {error && <p className="text-danger">{error}</p>}{" "}
-            {/* Display error */}
+
+            {error && <p className="text-danger">{error}</p>}
+
             <div className="mb-3">
               <label className="form-label">User Type</label>
               <div className="form-check">
@@ -177,6 +202,39 @@ const Register = () => {
                 </label>
               </div>
             </div>
+
+            {formData.userType === "organization" && (
+              <>
+                <div className="mb-3">
+                  <label htmlFor="location" className="form-label">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="location"
+                    placeholder="Enter Location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="description" className="form-label">
+                    Description
+                  </label>
+                  <textarea
+                    className="form-control"
+                    id="description"
+                    placeholder="Enter Description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </>
+            )}
+
             <button type="submit" className="btn btn-primary w-100">
               Register
             </button>

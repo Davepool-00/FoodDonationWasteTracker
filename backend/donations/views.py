@@ -14,8 +14,9 @@ class DonationListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        # Automatically associate the logged-in user as the donor
-        serializer.save(donor=self.request.user)
+        org_id = self.request.data.get("organization")
+        organization = get_object_or_404(Organization, pk=org_id)
+        serializer.save(donor=self.request.user, organization=organization)
 
 class ReceivedDonationsView(generics.ListAPIView):
     serializer_class = FoodDonationSerializer

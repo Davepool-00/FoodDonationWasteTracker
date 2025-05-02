@@ -4,8 +4,8 @@ import axios from "axios";
 const DonateFoodPage = () => {
   const [foodType, setFoodType] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [expirationDate, setExpirationDate] = useState(""); // New field for expiration date
-  const [pickupLocation, setPickupLocation] = useState(""); // New field for pickup location
+  const [expirationDate, setExpirationDate] = useState("");
+  const [pickupLocation, setPickupLocation] = useState("");
   const [organization, setOrganization] = useState("");
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,165 +13,131 @@ const DonateFoodPage = () => {
 
   useEffect(() => {
     const fetchOrganizations = async () => {
-      const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
         alert("Login required");
         return;
       }
 
       try {
-        const response = await axios.get(
-          "http://127.0.0.1:8000/organizations/",
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        setOrganizations(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching organizations:", error);
+        const res = await axios.get("http://127.0.0.1:8000/organizations/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setOrganizations(res.data);
+      } catch (err) {
         setError("Failed to fetch organizations.");
+      } finally {
         setLoading(false);
       }
     };
-
     fetchOrganizations();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !foodType ||
-      !quantity ||
-      !expirationDate ||
-      !pickupLocation ||
-      !organization
-    ) {
+    if (!foodType || !quantity || !expirationDate || !pickupLocation || !organization) {
       setError("All fields are required!");
       return;
     }
 
     setError("");
 
-    const accessToken = localStorage.getItem("access_token");
-    if (!accessToken) {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
       alert("Login required");
       return;
     }
 
-    const donationData = {
-      food_name: foodType, // Map to the `food_name` field in FoodDonation model
-      quantity,
-      expiration_date: expirationDate, // Add expiration date here
-      pickup_location: pickupLocation, // Add pickup location here
-      organization, // Send selected organization
-    };
-
     try {
-      const response = await axios.post(
+      await axios.post(
         "http://127.0.0.1:8000/food-donations/",
-        donationData,
         {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          food_name: foodType,
+          quantity,
+          expiration_date: expirationDate,
+          pickup_location: pickupLocation,
+          organization,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      console.log("Donation successful", response.data);
       alert("Donation submitted successfully!");
       setFoodType("");
       setQuantity("");
       setExpirationDate("");
       setPickupLocation("");
-      setOrganization(""); // Clear form fields
-    } catch (error) {
-      console.error("Error making donation:", error.response?.data || error);
+      setOrganization("");
+    } catch (err) {
       setError("Failed to make the donation. Please try again.");
     }
   };
 
   return (
-    <div className="container my-4">
-      <h2 className="text-center mb-4">Donate Food</h2>
+    <div className="container my-5">
+      <h2 className="text-center text-success mb-4 fw-bold">Donate Food</h2>
+
       {loading ? (
-        <div className="text-center">Loading organizations...</div>
-      ) : error ? (
-        <div className="text-center text-danger">{error}</div>
+        <p className="text-center">Loading organizations...</p>
       ) : (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="bg-light p-4 rounded shadow-sm">
+          {error && <div className="alert alert-danger">{error}</div>}
+
           <div className="row mb-3">
-            <div className="col-12 col-md-6">
-              <div className="form-group">
-                <label htmlFor="foodType">Food Type</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="foodType"
-                  value={foodType}
-                  onChange={(e) => setFoodType(e.target.value)}
-                  placeholder="Enter food type"
-                />
-              </div>
+            <div className="col-md-6">
+              <label className="form-label">Food Type</label>
+              <input
+                type="text"
+                className="form-control"
+                value={foodType}
+                onChange={(e) => setFoodType(e.target.value)}
+                placeholder="e.g., Rice, Canned Goods"
+              />
             </div>
-            <div className="col-12 col-md-6">
-              <div className="form-group">
-                <label htmlFor="quantity">Quantity</label>
-                <input
-                  type="number"
-                  className="form-control"
-                  id="quantity"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="Enter quantity"
-                  min="1"
-                  required
-                />
-              </div>
+            <div className="col-md-6">
+              <label className="form-label">Quantity</label>
+              <input
+                type="number"
+                className="form-control"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                min="1"
+                placeholder="e.g., 10"
+              />
             </div>
           </div>
 
           <div className="row mb-3">
-            <div className="col-12 col-md-6">
-              <div className="form-group">
-                <label htmlFor="expirationDate">Expiration Date</label>
-                <input
-                  type="date"
-                  className="form-control"
-                  id="expirationDate"
-                  value={expirationDate}
-                  onChange={(e) => setExpirationDate(e.target.value)}
-                  required
-                />
-              </div>
+            <div className="col-md-6">
+              <label className="form-label">Expiration Date</label>
+              <input
+                type="date"
+                className="form-control"
+                value={expirationDate}
+                onChange={(e) => setExpirationDate(e.target.value)}
+              />
             </div>
-            <div className="col-12 col-md-6">
-              <div className="form-group">
-                <label htmlFor="pickupLocation">Pickup Location</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="pickupLocation"
-                  value={pickupLocation}
-                  onChange={(e) => setPickupLocation(e.target.value)}
-                  placeholder="Enter pickup location"
-                  required
-                />
-              </div>
+            <div className="col-md-6">
+              <label className="form-label">Pickup Location</label>
+              <input
+                type="text"
+                className="form-control"
+                value={pickupLocation}
+                onChange={(e) => setPickupLocation(e.target.value)}
+                placeholder="e.g., 123 Main St, City"
+              />
             </div>
           </div>
 
-          <div className="form-group mb-3">
-            <label htmlFor="organization">Select Organization</label>
+          <div className="mb-3">
+            <label className="form-label">Select Organization</label>
             <select
-              className="form-control"
-              id="organization"
+              className="form-select"
               value={organization}
               onChange={(e) => setOrganization(e.target.value)}
             >
-              <option value="">Choose Organization</option>
+              <option value="">Choose an organization</option>
               {organizations.map((org) => (
                 <option key={org.id} value={org.id}>
                   {org.name}
@@ -180,9 +146,9 @@ const DonateFoodPage = () => {
             </select>
           </div>
 
-          <div className="text-center">
-            <button type="submit" className="btn btn-primary btn-lg w-100">
-              Donate
+          <div className="d-grid">
+            <button type="submit" className="btn btn-primary btn-lg">
+              Submit Donation
             </button>
           </div>
         </form>

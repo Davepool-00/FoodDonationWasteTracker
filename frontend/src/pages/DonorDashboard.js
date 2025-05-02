@@ -14,7 +14,6 @@ const DonorDashboard = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
         setDonations(response.data);
       } catch (error) {
         console.error("Error fetching donations:", error);
@@ -44,31 +43,37 @@ const DonorDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {donations.map((donation, index) => (
-                <tr key={donation.id}>
-                  <td>{index + 1}</td>
-                  <td>{donation.food_name}</td>
-                  <td>{donation.quantity}</td>
-                  <td>
-                    <span
-                      className={`badge ${
-                        donation.is_claimed
-                          ? "bg-success"
-                          : "bg-warning text-dark"
-                      }`}
-                    >
-                      {donation.is_claimed ? "Delivered" : "Pending"}
-                    </span>
-                  </td>
-                  <td>{new Date(donation.created_at).toLocaleDateString()}</td>
+              {donations.length > 0 ? (
+                donations.map((donation, index) => (
+                  <tr key={donation.id}>
+                    <td>{index + 1}</td>
+                    <td>{donation.food_name}</td>
+                    <td>{donation.quantity}</td>
+                    <td>
+                      <span
+                        className={`badge ${
+                          donation.is_claimed ? "bg-success" : "bg-warning text-dark"
+                        }`}
+                      >
+                        {donation.is_claimed ? "Delivered" : "Pending"}
+                      </span>
+                    </td>
+                    <td>{new Date(donation.created_at).toLocaleDateString()}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="text-center">No donations found</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      <button className="btn btn-primary mt-3">Donate More Food</button>
+      <button className="btn btn-primary mt-3" onClick={() => window.location.href = "/donate"}>
+        Donate More Food
+      </button>
     </div>
   );
 };

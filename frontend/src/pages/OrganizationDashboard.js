@@ -2,92 +2,100 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const OrganizationDashboard = () => {
-  const [receivedDonations, setReceivedDonations] = useState([]);
-  const [pendingDonations, setPendingDonations] = useState([]);
+  const [received, setReceived] = useState([]);
+  const [pending, setPending] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchDonations = async () => {
-      const accessToken = localStorage.getItem("access_token");
-      if (!accessToken) {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
         setError("Login required");
         setLoading(false);
         return;
       }
 
       try {
-        // Correct API endpoints
-        const receivedRes = await axios.get(
-          "http://127.0.0.1:8000/food-donations/api/received-donations/", // Updated URL
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        setReceivedDonations(receivedRes.data);
-
-        const pendingRes = await axios.get(
-          "http://127.0.0.1:8000/food-donations/api/pending-donations/", // Updated URL
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        setPendingDonations(pendingRes.data);
-
-        setLoading(false);
+        const [receivedRes, pendingRes] = await Promise.all([
+          axios.get("http://127.0.0.1:8000/food-donations/api/received-donations/", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("http://127.0.0.1:8000/food-donations/api/pending-donations/", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        setReceived(receivedRes.data);
+        setPending(pendingRes.data);
       } catch (err) {
-        console.error("Error fetching donations:", err);
         setError("Failed to fetch donations.");
+      } finally {
         setLoading(false);
       }
     };
-
     fetchDonations();
   }, []);
 
+  const markAsReceived = async (id) => {
+    const token = localStorage.getItem("access_token");
+    try {
+      await axios.post(`http://127.0.0.1:8000/food-donations/api/mark-received/${id}/`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const donation = pending.find((item) => item.id === id);
+      setPending(pending.filter((item) => item.id !== id));
+      setReceived([...received, donation]);
+    } catch (err) {
+      setError("Failed to mark as received.");
+    }
+  };
+
   return (
-    <div className="container mt-5">
-      <h2 className="mb-4">Organization Dashboard</h2>
+    <div className="container my-5">
+      <h2 className="text-center mb-4 fw-bold text-primary">Organization Dashboard</h2>
 
-      {loading ? (
-        <div>Loading...</div>
-      ) : error ? (
-        <div className="text-danger">{error}</div>
-      ) : (
+      {loading && <div className="alert alert-info text-center">Loading donations...</div>}
+      {error && <div className="alert alert-danger text-center">{error}</div>}
+
+      {!loading && !error && (
         <>
-          <div className="mb-4">
-            <h4>Received Donations</h4>
-            {receivedDonations.length === 0 ? (
-              <p>No received donations yet.</p>
+          <section className="mb-5">
+            <h4 className="mb-3">Received Donations</h4>
+            {received.length === 0 ? (
+              <div className="alert alert-warning">No received donations yet.</div>
             ) : (
               <ul className="list-group">
-                {receivedDonations.map((donation) => (
-                  <li key={donation.id} className="list-group-item">
-                    {donation.food_name} - {donation.quantity} items received
+                {received.map((donation) => (
+                  <li key={donation.id} className="list-group-item d-flex justify-content-between">
+                    {donation.food_name} - {donation.quantity} items
+                    <span className="badge bg-success">Received</span>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
+          </section>
 
-          <div className="mb-4">
-            <h4>Pending Donations</h4>
-            {pendingDonations.length === 0 ? (
-              <p>No pending donations.</p>
+          <section>
+            <h4 className="mb-3">Pending Donations</h4>
+            {pending.length === 0 ? (
+              <div className="alert alert-secondary">No pending donations.</div>
             ) : (
               <ul className="list-group">
-                {pendingDonations.map((donation) => (
-                  <li key={donation.id} className="list-group-item">
-                    {donation.food_name} - {donation.quantity} items pending
+                {pending.map((donation) => (
+                  <li key={donation.id} className="list-group-item d-flex justify-content-between">
+                    {donation.food_name} - {donation.quantity} items
+                    <button
+                      className="btn btn-outline-success btn-sm"
+                      onClick={() => markAsReceived(donation.id)}
+                    >
+                      Mark as Received
+                    </button>
                   </li>
                 ))}
               </ul>
             )}
-          </div>
+          </section>
         </>
       )}
     </div>

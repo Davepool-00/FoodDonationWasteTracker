@@ -44,6 +44,7 @@ const Login = () => {
       });
 
       const { user_type } = userResponse.data; // Get user type (role)
+      localStorage.setItem("user_type", user_type); // Save user_type
 
       // Step 3: Redirect based on user role
       if (user_type === "donor") {

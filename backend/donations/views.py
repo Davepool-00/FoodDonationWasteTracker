@@ -59,3 +59,10 @@ class MarkDonationAsReceived(APIView):
         donation.save()
 
         return Response({'message': 'Donation marked as received'}, status=status.HTTP_200_OK)
+
+class DonorDonationsView(generics.ListAPIView):
+    serializer_class = FoodDonationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return FoodDonation.objects.filter(donor=self.request.user).order_by('-created_at')

@@ -28,6 +28,7 @@ const Login = () => {
         username: formData.username,
         password: formData.password,
       });
+      localStorage.setItem("access", response.data.access); // Assuming response.data.access contains the token
 
       const { access, refresh } = response.data;
 

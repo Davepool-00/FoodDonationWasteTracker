@@ -8,7 +8,6 @@ import Register from "./pages/Register";
 import DonorDashboard from "./pages/DonorDashboard";
 import OrganizationDashboard from "./pages/OrganizationDashboard";
 import DonateFoodPage from "./pages/DonateFoodPage";
-import TrackDonationsPage from "./pages/TrackDonationsPage";
 import AboutPage from "./pages/About";
 import OrganizationPage from "./pages/OrganizationsPage";
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -27,7 +26,6 @@ function App() {
           element={<OrganizationDashboard />}
         />
         <Route path="/donate" element={<DonateFoodPage />} />
-        <Route path="/track-donations" element={<TrackDonationsPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/organizations" element={<OrganizationPage/>} />
         {/* Other routes as needed */}

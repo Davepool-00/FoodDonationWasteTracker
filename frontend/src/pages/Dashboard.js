@@ -79,9 +79,6 @@ const Dashboard = ({ userType }) => {
                   <li className="list-group-item">No donations received yet.</li>
                 )}
               </ul>
-              <button className="btn btn-primary mt-3 w-100" onClick={() => navigate("/track-donations")}>
-                Track Donations
-              </button>
             </>
           ) : null}
         </div>

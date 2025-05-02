@@ -16,7 +16,12 @@ const NavBar = () => {
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container-fluid">
         {/* Brand on the left */}
-        <img src={logo} alt="Logo" width="50px" className="rounded-circle me-2" />
+        <img
+          src={logo}
+          alt="Logo"
+          width="50px"
+          className="rounded-circle me-2"
+        />
         <Link className="navbar-brand" to="/">
           Bite Back
         </Link>
@@ -39,11 +44,7 @@ const NavBar = () => {
                 Donate Food
               </Link>
             </li>
-            <li className="nav-item">
-              <Link className="nav-link" to="/track-donations">
-                Track Donations
-              </Link>
-            </li>
+
             <li className="nav-item">
               <Link className="nav-link" to="/about">
                 About

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useLocation } from "react-router-dom";
 
 const DonateFoodPage = () => {
   const [foodType, setFoodType] = useState("");
@@ -10,28 +11,28 @@ const DonateFoodPage = () => {
   const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const location = useLocation();
 
   useEffect(() => {
     const fetchOrganizations = async () => {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        alert("Login required");
-        return;
-      }
-
       try {
-        const res = await axios.get("http://127.0.0.1:8000/organizations/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get("http://127.0.0.1:8000/organizations/");
         setOrganizations(res.data);
+
+        // Pre-fill the selected organization if present in URL
+        const params = new URLSearchParams(location.search);
+        const orgId = params.get("organization");
+        if (orgId) setOrganization(orgId);
       } catch (err) {
         setError("Failed to fetch organizations.");
       } finally {
         setLoading(false);
       }
     };
+
     fetchOrganizations();
-  }, []);
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,11 +42,9 @@ const DonateFoodPage = () => {
       return;
     }
 
-    setError("");
-
     const token = localStorage.getItem("access_token");
     if (!token) {
-      alert("Login required");
+      setError("Login required to make a donation.");
       return;
     }
 
@@ -63,14 +62,17 @@ const DonateFoodPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      alert("Donation submitted successfully!");
+
+      setSuccess("Donation submitted successfully!");
       setFoodType("");
       setQuantity("");
       setExpirationDate("");
       setPickupLocation("");
       setOrganization("");
+      setError("");
     } catch (err) {
       setError("Failed to make the donation. Please try again.");
+      setSuccess("");
     }
   };
 
@@ -83,52 +85,7 @@ const DonateFoodPage = () => {
       ) : (
         <form onSubmit={handleSubmit} className="bg-light p-4 rounded shadow-sm">
           {error && <div className="alert alert-danger">{error}</div>}
-
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label className="form-label">Food Type</label>
-              <input
-                type="text"
-                className="form-control"
-                value={foodType}
-                onChange={(e) => setFoodType(e.target.value)}
-                placeholder="e.g., Rice, Canned Goods"
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Quantity</label>
-              <input
-                type="number"
-                className="form-control"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                min="1"
-                placeholder="e.g., 10"
-              />
-            </div>
-          </div>
-
-          <div className="row mb-3">
-            <div className="col-md-6">
-              <label className="form-label">Expiration Date</label>
-              <input
-                type="date"
-                className="form-control"
-                value={expirationDate}
-                onChange={(e) => setExpirationDate(e.target.value)}
-              />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label">Pickup Location</label>
-              <input
-                type="text"
-                className="form-control"
-                value={pickupLocation}
-                onChange={(e) => setPickupLocation(e.target.value)}
-                placeholder="e.g., 123 Main St, City"
-              />
-            </div>
-          </div>
+          {success && <div className="alert alert-success">{success}</div>}
 
           <div className="mb-3">
             <label className="form-label">Select Organization</label>
@@ -144,6 +101,51 @@ const DonateFoodPage = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Food Type</label>
+            <input
+              type="text"
+              className="form-control"
+              value={foodType}
+              onChange={(e) => setFoodType(e.target.value)}
+              placeholder="e.g., Rice, Canned Goods"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Quantity</label>
+            <input
+              type="number"
+              className="form-control"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              min="1"
+              placeholder="e.g., 10"
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Expiration Date</label>
+            <input
+              type="date"
+              className="form-control"
+              value={expirationDate}
+              onChange={(e) => setExpirationDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Pickup Location</label>
+            <input
+              type="text"
+              className="form-control"
+              value={pickupLocation}
+              onChange={(e) => setPickupLocation(e.target.value)}
+              placeholder="e.g., 123 Main St, City"
+            />
           </div>
 
           <div className="d-grid">

@@ -1,3 +1,4 @@
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework import viewsets, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -14,7 +15,7 @@ from .permissions import IsAdminOrReadOnly, IsOrganizationOrAdmin, IsDonorOrAdmi
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
-
+from django.contrib.auth import get_user_model
 # --- FoodDonation CRUD API ---
 class FoodDonationViewSet(viewsets.ModelViewSet):
     queryset = FoodDonation.objects.all()
@@ -71,14 +72,20 @@ class LoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # --- List Organizations ---
+# class OrganizationListView(APIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def get(self, request):
+#         orgs = Organization.objects.all()
+#         serializer = OrganizationSerializer(orgs, many=True)
+#         return Response(serializer.data)
 class OrganizationListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.AllowAny]  # Allow public access
 
     def get(self, request):
         orgs = Organization.objects.all()
         serializer = OrganizationSerializer(orgs, many=True)
         return Response(serializer.data)
-
 # --- Get Current User Info ---
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -98,3 +105,12 @@ class UserDetailView(APIView):
         # Corrected this line to directly access the CustomUser instance
         serializer = CustomUserSerializer(request.user)
         return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Only authenticated users can access
+def user_profile(request):
+    user = request.user
+    return Response({
+        'username': user.username,
+        'user_type': user.user_type,
+    })

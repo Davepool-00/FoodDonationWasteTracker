@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import OrganizationListView, get_user_info, SignUpView, LoginView, FoodDonationViewSet, UserDetailView
+from .views import OrganizationListView, get_user_info, SignUpView, LoginView, FoodDonationViewSet, UserDetailView, user_profile
 
 router = DefaultRouter()
 router.register(r'food-donations', FoodDonationViewSet, basename='fooddonation')  # Register the viewset
@@ -12,4 +12,5 @@ urlpatterns = [
     path('organizations/', OrganizationListView.as_view(), name='organization-list'),
     path('user/', UserDetailView.as_view(), name='user-detail'),
     path('api/user/', get_user_info),
+    path('api/user-profile/', user_profile, name='user-profile'),
 ]

@@ -22,10 +22,8 @@ from users import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('users.urls')),  # Include users app routes (signup, login, food donations)
+    path('api/users/', include('users.urls')),            # Users routes
+    path('api/donations/', include('donations.urls')),    # Donations routes
     path('api/token/', jwt_views.TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('organizations/', views.OrganizationListView.as_view(), name='organization-list'),
-    path('food-donations/', include('donations.urls')),
-
+    path('api/organizations/', views.OrganizationListView.as_view(), name='organization-list'),
 ]
-

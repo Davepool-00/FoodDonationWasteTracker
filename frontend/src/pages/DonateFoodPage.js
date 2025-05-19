@@ -17,7 +17,7 @@ const DonateFoodPage = () => {
   useEffect(() => {
     const fetchOrganizations = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/organizations/");
+        const res = await axios.get("http://127.0.0.1:8000/api/organizations/");
         setOrganizations(res.data);
 
         // Pre-fill the selected organization if present in URL
@@ -37,7 +37,13 @@ const DonateFoodPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!foodType || !quantity || !expirationDate || !pickupLocation || !organization) {
+    if (
+      !foodType ||
+      !quantity ||
+      !expirationDate ||
+      !pickupLocation ||
+      !organization
+    ) {
       setError("All fields are required!");
       return;
     }
@@ -50,7 +56,7 @@ const DonateFoodPage = () => {
 
     try {
       await axios.post(
-        "http://127.0.0.1:8000/food-donations/",
+        "http://127.0.0.1:8000/api/donations/",
         {
           food_name: foodType,
           quantity,
@@ -83,7 +89,10 @@ const DonateFoodPage = () => {
       {loading ? (
         <p className="text-center">Loading organizations...</p>
       ) : (
-        <form onSubmit={handleSubmit} className="bg-light p-4 rounded shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-light p-4 rounded shadow-sm"
+        >
           {error && <div className="alert alert-danger">{error}</div>}
           {success && <div className="alert alert-success">{success}</div>}
 

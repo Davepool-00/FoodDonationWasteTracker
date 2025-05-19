@@ -67,9 +67,10 @@ const Register = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/api/signup/",
+        "http://127.0.0.1:8000/api/users/signup/",
         userData
       );
+
       console.log(response.data);
       alert("Registered successfully!");
       navigate("/login");

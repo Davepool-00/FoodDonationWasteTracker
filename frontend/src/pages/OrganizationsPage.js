@@ -9,26 +9,27 @@ const OrganizationsPage = () => {
   useEffect(() => {
     const fetchOrganizations = async () => {
       try {
-        const orgsRes = await axios.get("http://127.0.0.1:8000/organizations/");
+        const orgsRes = await axios.get("http://127.0.0.1:8000/api/organizations/");
         setOrganizations(orgsRes.data);
       } catch (error) {
         console.error("Error loading organizations:", error);
         alert("Failed to load organizations. Please try again.");
       }
 
-      // Fetch user type if not already set
-      const token = localStorage.getItem("access_token");
-      if (token && !userType) {
-        try {
-          const userRes = await axios.get("http://127.0.0.1:8000/user-info/", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setUserType(userRes.data.user_type);
-          localStorage.setItem("user_type", userRes.data.user_type);
-        } catch (error) {
-          console.error("Failed to fetch user info:", error);
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("user_type");
+      if (!userType) {
+        const token = localStorage.getItem("access_token");
+        if (token) {
+          try {
+            const userRes = await axios.get("http://127.0.0.1:8000/api/users/user/", {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            setUserType(userRes.data.user_type);
+            localStorage.setItem("user_type", userRes.data.user_type);
+          } catch (error) {
+            console.error("Failed to fetch user info:", error);
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("user_type");
+          }
         }
       }
     };
@@ -49,8 +50,6 @@ const OrganizationsPage = () => {
                 <p className="text-muted">
                   <strong>Location:</strong> {org.location}
                 </p>
-
-                {/* Hide donate button for organization accounts */}
                 {userType && userType !== "organization" && (
                   <Link
                     to={`/donate?organization=${org.id}&name=${encodeURIComponent(org.name)}`}

@@ -4,20 +4,26 @@ import axios from "axios";
 
 const HomePage = () => {
   const [userType, setUserType] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Fetch the current user info (including user_type)
   useEffect(() => {
     const fetchUserInfo = async () => {
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const token = localStorage.getItem("access_token");
-        const response = await axios.get("http://127.0.0.1:8000/api/user/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        const response = await axios.get("http://127.0.0.1:8000/api/users/user/", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setUserType(response.data.user_type); // Set user_type
+        setUserType(response.data.user_type);
       } catch (error) {
         console.error("Error fetching user info", error);
+        setUserType(null);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -25,6 +31,8 @@ const HomePage = () => {
   }, []);
 
   const renderUserTypeContent = () => {
+    if (loading) return <p>Loading...</p>;
+
     if (userType === "donor") {
       return (
         <>
